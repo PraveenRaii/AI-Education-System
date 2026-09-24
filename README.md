@@ -1,208 +1,240 @@
-# Neural Academy ✦ AI-Powered Education System
+# 🎓 Neural Academy — AI-Powered Education System
 
-Neural Academy is a modern, full-stack adaptive learning platform featuring personalized student tracks, an intelligent AI tutor powered by Google Gemini, real-time schedule and task management, an administrative console with full MongoDB CRUD, and dynamic light/dark theming.
+An intelligent, full-stack education platform powered by **Google Gemini AI**. Students can learn through interactive courses, track progress, manage tasks, and chat with an AI tutor — all in one place.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-- **Personalized Learning Tracks**: Curriculum paths for Class 1–8, Class 8–10, Class 11–12, and Graduation.
-- **AI Tutor (Gemini Integration)**: Instant homework help and conceptual explanations with student-friendly guidance.
-- **Interactive Schedule & Calendar**: Monthly calendar navigation, daily progress percentage tracking, and to-do management with task deletion.
-- **Admin Management Console**:
-  - Task CRUD operations with real-time MongoDB ID tracking and date validation.
-  - Contact inbox for visitor inquiries with status updates (`new`, `read`, `resolved`).
-  - Live user overview and metrics.
-- **Profile & Settings**:
-  - Image upload with fallback base64 and Cloudinary support.
-  - Social media link integration and notification preference controls.
-- **Theme Support**: Seamless Dark and Light mode across all public pages and the dashboard.
-- **Unified Full-Stack Architecture**: Single deployment model where Express serves the production React build out-of-the-box.
+- 🤖 **AI Chat Tutor** — Ask questions, get explanations powered by Google Gemini
+- 📚 **Course & Track Management** — Browse learning tracks and enroll in courses
+- ✅ **Task Manager** — Create, update, and delete personal study tasks
+- 📅 **Schedule & Calendar** — Visual monthly calendar with todo progress tracking
+- 👤 **Profile & Avatar Upload** — Personalize your account with an uploaded photo
+- 🌙 **Dark / Light Theme** — Toggle theme with persistent preference
+- 🔐 **Admin Panel** — Manage users, contacts, and platform content
+- 📩 **Contact Form** — Email notifications via Nodemailer
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Frontend**: React 18, Vite 5, Tailwind CSS, Vanilla CSS design system
-- **Backend**: Node.js, Express 4, Mongoose 8
-- **Database**: MongoDB Atlas
-- **AI**: Google Generative AI SDK (`@google/generative-ai`)
-- **Authentication**: JWT (JSON Web Tokens) & bcryptjs
-- **Media & Email**: Cloudinary (optional) & Nodemailer (SMTP)
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Vite, CSS |
+| Backend | Node.js, Express |
+| Database | MongoDB Atlas (Mongoose) |
+| AI | Google Gemini API |
+| File Uploads | Cloudinary |
+| Email | Nodemailer (SMTP) |
+| Auth | JWT (JSON Web Tokens) |
+| Deployment | Render.com |
 
 ---
 
-## 💻 Local Setup & Development
+## 🚀 Local Development Setup
 
-### 1. Clone the repository
+### Prerequisites
+- Node.js v18+
+- MongoDB Atlas account (or local MongoDB)
+- Google Gemini API key
+
+### Steps
+
 ```bash
+# 1. Clone the repository
 git clone https://github.com/PraveenRaii/AI-Education-System.git
 cd AI-Education-System
-```
 
-### 2. Install dependencies
-```bash
+# 2. Install all dependencies (root + backend + frontend)
 npm install
+
+# 3. Copy environment file and fill in your values
+cp .env.example .env
 ```
 
-### 3. Configure Environment Variables
-Create a `.env` file in the root directory (use `.env.example` as a template):
-```env
-PORT=5000
-CLIENT_ORIGIN=http://localhost:5173
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/Education?retryWrites=true&w=majority
-JWT_SECRET=your-random-jwt-secret-key
-ADMIN_EMAIL=coder4986@gmail.com
-ADMIN_PASSWORD=your-secure-admin-password
+Open `.env` and fill in all required values (see table below).
 
-# AI Tutor (Gemini)
-GEMINI_API_KEY=your-google-gemini-api-key
-GEMINI_MODEL=gemini-1.5-flash
-
-# Cloudinary (Optional - for avatar uploads)
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-
-# Email (Optional - for contact form)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=
-SMTP_PASSWORD=
-CONTACT_RECEIVER_EMAIL=coder4986@gmail.com
+```bash
+# 4. Start both frontend and backend together
+npm run dev:full
 ```
 
-### 4. Run Locally
-- **Run Fullstack (Frontend + Backend concurrently)**:
-  ```bash
-  npm run dev:full
-  ```
-- **Run Frontend only**:
-  ```bash
-  npm run dev
-  ```
-- **Run Backend only**:
-  ```bash
-  npm run server
-  ```
-- **Build Frontend**:
-  ```bash
-  npm run build
-  ```
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:5000
 
 ---
 
-## 🌐 Render Deployment Guide (Step-by-Step)
+## 🔑 Environment Variables
 
-The project is configured so that you can deploy the complete full-stack app on **a single Render Web Service (Free Tier)**.
+Create a `.env` file in the project root with these variables:
 
-### Step 1: Prepare MongoDB Atlas
-1. Log in to [MongoDB Atlas](https://cloud.mongodb.com/).
-2. Under **Security** > **Network Access**, click **Add IP Address** and choose **Allow Access From Anywhere** (`0.0.0.0/0`) since Render uses dynamic outbound IPs.
-3. Under **Database**, click **Connect** > **Drivers** to copy your connection string (e.g. `mongodb+srv://<username>:<password>@cluster0.xxx.mongodb.net/Education?retryWrites=true&w=majority`).
-
----
-
-### Step 2: Create a Web Service on Render
-1. Go to [Render Dashboard](https://dashboard.render.com/) and sign in with GitHub.
-2. Click **New +** > **Web Service**.
-3. Select and connect your repository: `PraveenRaii/AI-Education-System`.
-
----
-
-### Step 3: Configure Service Details
-
-Fill in the settings as follows:
-
-| Field | Recommended Value | Notes |
-| :--- | :--- | :--- |
-| **Name** | `neural-academy` | Or any unique service name |
-| **Region** | Singapore / Frankfurt / Oregon | Choose the closest region to your users |
-| **Branch** | `main` | Production branch |
-| **Root Directory** | *(Leave blank)* | Uses project root |
-| **Runtime** | `Node` | Node.js environment |
-| **Build Command** | `npm install && npm run build` | Installs dependencies and builds the Vite frontend into `dist/` |
-| **Start Command** | `npm start` | Starts Express backend which serves API and frontend |
-| **Instance Type** | `Free` | Free tier tier |
+| Variable | Description | Required |
+|---|---|---|
+| `MONGODB_URI` | MongoDB Atlas connection string | ✅ Yes |
+| `JWT_SECRET` | Any long random secret string | ✅ Yes |
+| `ADMIN_EMAIL` | Admin login email | ✅ Yes |
+| `ADMIN_PASSWORD` | Admin login password | ✅ Yes |
+| `GEMINI_API_KEY` | Google AI Studio API key | ✅ Yes |
+| `CLIENT_ORIGIN` | Frontend URL (for CORS) | ✅ Yes |
+| `NODE_ENV` | Set to `production` on Render | ✅ Yes |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | ⚠️ For uploads |
+| `CLOUDINARY_API_KEY` | Cloudinary API key | ⚠️ For uploads |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret | ⚠️ For uploads |
+| `SMTP_HOST` | Email SMTP host | ⚠️ For email |
+| `SMTP_PORT` | Email SMTP port | ⚠️ For email |
+| `SMTP_USER` | Email SMTP username | ⚠️ For email |
+| `SMTP_PASS` | Email SMTP password | ⚠️ For email |
 
 ---
 
-### Step 4: Add Environment Variables
+## ☁️ Render Deployment Guide (Step-by-Step)
 
-In the **Environment Variables** section on Render, add the following key-value pairs:
-
-| Variable | Description / Example | Required |
-| :--- | :--- | :---: |
-| `MONGODB_URI` | Your MongoDB connection string (`mongodb+srv://...`) | **Yes** |
-| `JWT_SECRET` | A secure random string for signing user tokens | **Yes** |
-| `ADMIN_EMAIL` | Administrator login email (e.g. `coder4986@gmail.com`) | **Yes** |
-| `ADMIN_PASSWORD` | Administrator login password | **Yes** |
-| `GEMINI_API_KEY` | Google AI Studio Gemini API Key | Recommended |
-| `GEMINI_MODEL` | `gemini-1.5-flash` | Optional |
-| `NODE_ENV` | `production` | Optional |
-| `PORT` | `10000` *(Render sets this automatically)* | Optional |
-| `CLIENT_ORIGIN` | Your Render app URL (e.g. `https://neural-academy.onrender.com`) | Optional |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | Optional |
-| `CLOUDINARY_API_KEY` | Cloudinary API key | Optional |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | Optional |
-| `SMTP_HOST` | SMTP server host (e.g. `smtp.gmail.com`) | Optional |
-| `SMTP_PORT` | `465` | Optional |
-| `SMTP_SECURE` | `true` | Optional |
-| `SMTP_USER` | Email address sending notifications | Optional |
-| `SMTP_PASSWORD` | App password for SMTP account | Optional |
-| `CONTACT_RECEIVER_EMAIL` | Destination email for contact submissions | Optional |
+This app deploys as a **single Web Service** on Render — Express serves both the API and the React frontend build.
 
 ---
 
-### Step 5: Deploy & Launch
-1. Click **Create Web Service** at the bottom of the page.
-2. Render will trigger the build pipeline:
-   - `npm install` installs both frontend and backend dependencies.
-   - `npm run build` compiles Vite assets to `dist/`.
-   - `npm start` launches `backend/index.js`, serving API endpoints under `/api` and the React app for all other routes.
-3. Once the build finishes and shows **Live**, open your public Render URL (e.g. `https://neural-academy.onrender.com`).
-4. Click **Admin sign in** at the top right and log in using your `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+### Step 1 — Prepare MongoDB Atlas
+
+1. Go to [https://cloud.mongodb.com](https://cloud.mongodb.com)
+2. Open your cluster → **Network Access** → click **Add IP Address**
+3. Enter `0.0.0.0/0` and click **Confirm** *(allows Render's dynamic IPs)*
+4. Go to **Database Access** → create a database user with a strong password
+5. Click **Connect** → **Drivers** → copy the connection string:
+   ```
+   mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/neural-academy?retryWrites=true&w=majority
+   ```
 
 ---
 
-## ⚡ Alternative: Blueprint Deployment (`render.yaml`)
+### Step 2 — Create Web Service on Render
 
-This repository also includes a [`render.yaml`](./render.yaml) file. You can deploy directly with Render Blueprints:
-1. Go to **Render Dashboard** > **Blueprints** > **New Blueprint Instance**.
-2. Connect this repository.
-3. Fill in the prompted secrets (`MONGODB_URI`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `GEMINI_API_KEY`).
-4. Click **Apply** to automatically provision and launch the service.
+1. Go to [https://render.com](https://render.com) and sign in
+2. Click **New +** → **Web Service**
+3. Connect your GitHub account if not already connected
+4. Search for and select the repo: **`PraveenRaii/AI-Education-System`**
+5. Click **Connect**
 
 ---
 
-## 📁 Repository Structure
+### Step 3 — Configure Build & Start Settings
 
-```text
+Fill in these settings on the Render service page:
+
+| Setting | Value |
+|---|---|
+| **Name** | `neural-academy` (or any name you like) |
+| **Region** | Singapore / Oregon (whichever is closest) |
+| **Branch** | `main` |
+| **Runtime** | `Node` |
+| **Build Command** | `npm install && npm run build` |
+| **Start Command** | `npm start` |
+| **Instance Type** | Free (or Starter for production) |
+
+---
+
+### Step 4 — Add Environment Variables
+
+On the Render service page, scroll down to **Environment** → click **Add Environment Variable** for each:
+
+| Key | Value |
+|---|---|
+| `MONGODB_URI` | Your Atlas connection string from Step 1 |
+| `JWT_SECRET` | Any long random string e.g. `mysecretkey123abc456xyz` |
+| `ADMIN_EMAIL` | Your admin email e.g. `coder4986@gmail.com` |
+| `ADMIN_PASSWORD` | Strong admin password |
+| `GEMINI_API_KEY` | Get from https://aistudio.google.com/app/apikey |
+| `NODE_ENV` | `production` |
+| `CLIENT_ORIGIN` | *(leave blank for now — fill after first deploy)* |
+| `CLOUDINARY_CLOUD_NAME` | From your Cloudinary dashboard |
+| `CLOUDINARY_API_KEY` | From your Cloudinary dashboard |
+| `CLOUDINARY_API_SECRET` | From your Cloudinary dashboard |
+| `SMTP_HOST` | e.g. `smtp.gmail.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USER` | Your Gmail address |
+| `SMTP_PASS` | Gmail App Password (not regular password) |
+
+---
+
+### Step 5 — Deploy
+
+1. Click **Create Web Service**
+2. Render will start building — watch the logs in the **Logs** tab
+3. Build takes ~3–5 minutes for the first deploy
+4. When you see `==> Your service is live 🎉`, your app is deployed!
+5. Copy your live URL — it looks like: `https://neural-academy.onrender.com`
+
+---
+
+### Step 6 — Set CLIENT_ORIGIN (Important!)
+
+After your first deploy:
+
+1. Go back to **Environment** tab on Render
+2. Find `CLIENT_ORIGIN` → set its value to your live Render URL:
+   ```
+   https://neural-academy.onrender.com
+   ```
+3. Click **Save Changes** → Render will auto-redeploy
+4. This fixes CORS — your frontend and backend will communicate correctly
+
+---
+
+### Step 7 — Test Your Live App
+
+1. Open your live URL in the browser
+2. Click **Login** → use your `ADMIN_EMAIL` and `ADMIN_PASSWORD`
+3. Test:
+   - ✅ Login / Register
+   - ✅ AI Chat Tutor
+   - ✅ Courses & Tracks
+   - ✅ Task Manager
+   - ✅ Schedule Calendar
+   - ✅ Profile & Avatar Upload
+   - ✅ Admin Panel (if logged in as admin)
+
+---
+
+## 🐛 Troubleshooting
+
+| Problem | Solution |
+|---|---|
+| MongoDB connection error | Check `MONGODB_URI` is correct and IP `0.0.0.0/0` is whitelisted in Atlas |
+| Build fails on Render | Check Node version — set `NODE_VERSION=18` in Render env vars |
+| CORS errors in browser | Make sure `CLIENT_ORIGIN` matches your exact Render URL (no trailing slash) |
+| AI chat not working | Check `GEMINI_API_KEY` is valid — get one from https://aistudio.google.com/app/apikey |
+| Avatar upload fails | Check all three Cloudinary env vars are set correctly |
+| Emails not sending | Use Gmail App Password (not regular password) with 2FA enabled |
+| App shows blank page | Run `npm run build` locally first to check for build errors |
+
+---
+
+## 📁 Project Structure
+
+```
+AI-Education-System/
 ├── backend/
-│   ├── middleware/
-│   │   └── auth.js            # JWT auth and admin permission middlewares
-│   ├── models/
-│   │   ├── Contact.js         # Contact requests Mongoose schema
-│   │   ├── Task.js            # Tasks Mongoose schema
-│   │   └── User.js            # User profile Mongoose schema
-│   └── index.js               # Express API and production static server
+│   ├── index.js          # Main Express server
+│   ├── models/           # Mongoose models (User, Task, Contact)
+│   └── middleware/       # Auth middleware (JWT)
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        # Dashboard, Sidebar, TutorChat, Brand, Icon
-│   │   ├── pages/             # HomePage, AuthPage, AdminPage, SchedulePage, CoursesPage, etc.
-│   │   ├── shared/            # api.js client, tracks and course data
-│   │   ├── App.jsx            # Main app controller with route and theme state
-│   │   └── styles.css         # Global styles and theme tokens
-│   ├── index.html             # HTML entry point
-│   └── vite.config.js         # Vite configuration with /api proxy
-├── .env.example               # Template environment configuration
-├── package.json               # Full-stack dependencies and deployment scripts
-└── render.yaml                # Render Blueprint deployment definition
+│   │   ├── pages/        # React pages (Dashboard, Schedule, etc.)
+│   │   ├── components/   # Reusable components
+│   │   └── shared/       # API helper, static data
+│   └── vite.config.js    # Vite config (builds to ../dist)
+├── dist/                 # Production build output (auto-generated)
+├── render.yaml           # Render Blueprint config
+├── package.json          # Root scripts (build, start, dev:full)
+└── .env.example          # Template for environment variables
 ```
 
 ---
 
-## 📄 License
+## 📜 License
 
-ISC License. Built for Neural Academy.
+MIT — free to use, modify, and distribute.
+
+---
+
+*Built with ❤️ by [PraveenRaii](https://github.com/PraveenRaii)*
