@@ -15,7 +15,10 @@ function App() {
   });
   const [sessionLoading, setSessionLoading] = useState(Boolean(localStorage.getItem('neural_academy_token')));
   const [theme, setTheme] = useState(() => localStorage.getItem('neural_academy_theme') || 'dark');
-  useEffect(() => localStorage.setItem('neural_academy_theme', theme), [theme]);
+  useEffect(() => {
+    localStorage.setItem('neural_academy_theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     if (!localStorage.getItem('neural_academy_token')) {
@@ -47,8 +50,8 @@ function App() {
 
   const [screen, setScreen] = useState('home');
   const [authMode, setAuthMode] = useState('login');
-  if (sessionLoading) return <div className="session-loading">Loading your Neural Academy profile?</div>;
-  if (user) return <Dashboard user={user} onUserUpdate={setUser} onLogout={handleLogout} />;
+  if (sessionLoading) return <div className="session-loading">Loading your Neural Academy profile…</div>;
+  if (user) return <Dashboard user={user} onUserUpdate={setUser} onLogout={handleLogout} theme={theme} setTheme={setTheme} />;
   if (screen === 'admin-auth') return <AdminAuth onLogin={handleLogin} onBack={() => setScreen('home')} />;
   if (screen === 'auth') return <Auth initialMode={authMode} onLogin={handleLogin} onBack={() => setScreen('home')} />;
   return <Home theme={theme} setTheme={setTheme} onOpenAuth={(mode) => { setAuthMode(mode); setScreen('auth'); }} onOpenAdmin={() => setScreen('admin-auth')} />;

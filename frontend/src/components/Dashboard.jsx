@@ -10,13 +10,16 @@ import ScheduleView from '../pages/SchedulePage';
 import ProfileOverview from '../pages/ProfilePage';
 import { AdminPanel, ContactInbox } from '../pages/AdminPage';
 
-function Dashboard({ onLogout, user, onUserUpdate }) {
+function Dashboard({ onLogout, user, onUserUpdate, theme: propTheme, setTheme: propSetTheme }) {
   const [active, setActive] = useState(user?.role === 'admin' ? 'admin' : 'overview');
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [theme, setTheme] = useState(() => localStorage.getItem('neural_academy_theme') || 'dark');
+  const [internalTheme, setInternalTheme] = useState(() => localStorage.getItem('neural_academy_theme') || 'dark');
+
+  const theme = propTheme || internalTheme;
+  const setTheme = propSetTheme || setInternalTheme;
 
   useEffect(() => {
     localStorage.setItem('neural_academy_theme', theme);

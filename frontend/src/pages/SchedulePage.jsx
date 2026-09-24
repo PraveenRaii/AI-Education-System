@@ -9,6 +9,7 @@ function ScheduleView() {
     { text: 'Practice speaking exercises', meta: 'Communication · 20 min', done: false }
   ]);
   const [newTask, setNewTask] = useState('');
+  const [monthOffset, setMonthOffset] = useState(0);
   const toggleTodo = (index) =>
     setTodos(todos.map((todo, i) => (i === index ? { ...todo, done: !todo.done } : todo)));
   const addTodo = (e) => {
@@ -17,19 +18,30 @@ function ScheduleView() {
     setTodos([...todos, { text: newTask.trim(), meta: 'Personal · Self-paced', done: false }]);
     setNewTask('');
   };
+  const deleteTodo = (e, index) => {
+    e.stopPropagation();
+    setTodos(todos.filter((_, i) => i !== index));
+  };
 
   const now = new Date();
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const todayLabel = `${dayNames[now.getDay()]}, ${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
-  const monthLabel = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
   const todayShort = `${monthNames[now.getMonth()].slice(0,3).toUpperCase()} ${now.getDate()}`;
 
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+  const displayedDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const displayedYear = displayedDate.getFullYear();
+  const displayedMonth = displayedDate.getMonth();
+  const monthLabel = `${monthNames[displayedMonth]} ${displayedYear}`;
+  const daysInMonth = new Date(displayedYear, displayedMonth + 1, 0).getDate();
+  const firstDay = new Date(displayedYear, displayedMonth, 1).getDay();
   // Adjust so Monday=0
   const startOffset = (firstDay + 6) % 7;
-  const eventDays = [3, 8, 14, now.getDate(), now.getDate() + 3];
+  const isCurrentMonth = displayedYear === now.getFullYear() && displayedMonth === now.getMonth();
+  const eventDays = isCurrentMonth ? [3, 8, 14, now.getDate(), now.getDate() + 3] : [5, 12, 20];
+
+  const completedCount = todos.filter((t) => t.done).length;
+  const progressPercent = todos.length === 0 ? 0 : Math.round((completedCount / todos.length) * 100);
 
   return (
     <section className="workspace-view">
@@ -57,8 +69,22 @@ function ScheduleView() {
               <p>{todayLabel}</p>
             </div>
             <div className="calendar-controls">
-              <button>‹</button>
-              <button>›</button>
+              <button
+                type="button"
+                onClick={() => setMonthOffset((prev) => prev - 1)}
+                aria-label="Previous month"
+                title="Previous month"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={() => setMonthOffset((prev) => prev + 1)}
+                aria-label="Next month"
+                title="Next month"
+              >
+                ›
+              </button>
             </div>
           </div>
           <div className="calendar-week">
@@ -69,13 +95,13 @@ function ScheduleView() {
           <div className="calendar-days">
             {Array.from({ length: startOffset }).map((_, i) => (
               <button key={`prev-${i}`} className="muted" disabled>
-                {new Date(now.getFullYear(), now.getMonth(), 0).getDate() - startOffset + i + 1}
+                {new Date(displayedYear, displayedMonth, 0).getDate() - startOffset + i + 1}
               </button>
             ))}
             {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => (
               <button
                 key={day}
-                className={`${day === now.getDate() ? 'current' : ''}`}
+                className={`${isCurrentMonth && day === now.getDate() ? 'current' : ''}`}
               >
                 {day}
                 {eventDays.includes(day) && <i />}
@@ -87,32 +113,48 @@ function ScheduleView() {
           <div className="panel-heading">
             <div>
               <h2>Today&apos;s to-do list</h2>
-              <p>{todos.filter((t) => t.done).length} of {todos.length} completed</p>
+              <p>{completedCount} of {todos.length} completed</p>
             </div>
             <span className="todo-date">{todayShort}</span>
           </div>
           <div className="todo-list">
-            {todos.map((todo, index) => (
-              <button
-                className={`todo-item ${todo.done ? 'done' : ''}`}
-                onClick={() => toggleTodo(index)}
-                key={index}
-              >
-                <span className="todo-check">{todo.done ? '✓' : ''}</span>
-                <span>
-                  <strong>{todo.text}</strong>
-                  <small>{todo.meta}</small>
-                </span>
-              </button>
-            ))}
+            {todos.length === 0 ? (
+              <p className="empty-state">No tasks yet. Add one above.</p>
+            ) : (
+              todos.map((todo, index) => (
+                <div
+                  className={`todo-item ${todo.done ? 'done' : ''}`}
+                  onClick={() => toggleTodo(index)}
+                  key={index}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && toggleTodo(index)}
+                >
+                  <span className="todo-check">{todo.done ? '✓' : ''}</span>
+                  <span>
+                    <strong>{todo.text}</strong>
+                    <small>{todo.meta}</small>
+                  </span>
+                  <button
+                    type="button"
+                    className="todo-delete"
+                    onClick={(e) => deleteTodo(e, index)}
+                    aria-label="Delete task"
+                    title="Delete task"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
           </div>
           <div className="todo-progress">
             <div>
               <span>Daily progress</span>
-              <strong>{Math.round((todos.filter((t) => t.done).length / todos.length) * 100)}%</strong>
+              <strong>{progressPercent}%</strong>
             </div>
             <div className="progress-bar">
-              <i style={{ width: `${(todos.filter((t) => t.done).length / todos.length) * 100}%` }} />
+              <i style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
         </section>

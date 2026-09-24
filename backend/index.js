@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -13,16 +16,38 @@ import Task from './models/Task.js';
 import Contact from './models/Contact.js';
 import { requireAdmin, requireAuth } from './middleware/auth.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, '../dist');
+
 const required = ['MONGODB_URI', 'JWT_SECRET'];
 const missing = required.filter((name) => !process.env[name]);
 if (missing.length) {
   console.error(`Missing required environment variables: ${missing.join(', ')}`);
+  console.error('Please configure your .env file using .env.example as a template.');
   process.exit(1);
 }
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }));
+
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  ...(process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.split(',').map((s) => s.trim()) : [])
+]);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true
+  })
+);
 app.use(express.json({ limit: '1mb' }));
 
 mongoose
@@ -52,6 +77,8 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
     api_secret: process.env.CLOUDINARY_API_SECRET
   });
 }
+
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 function createToken(user) {
   return jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -205,7 +232,11 @@ app.get('/api/admin/contacts', requireAuth, requireAdmin, async (_req, res, next
 
 app.put('/api/admin/contacts/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    const contact = await Contact.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true, runValidators: true });
+    const { status } = req.body;
+    if (status && !['new', 'read', 'resolved'].includes(status)) {
+      return res.status(400).json({ message: 'Status must be "new", "read", or "resolved".' });
+    }
+    const contact = await Contact.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true });
     if (!contact) return res.status(404).json({ message: 'Contact request not found.' });
     return res.json({ contact });
   } catch (error) {
@@ -226,7 +257,14 @@ app.post('/api/admin/tasks', requireAuth, requireAdmin, async (req, res, next) =
   try {
     const { title, description, status, dueDate, assignedTo } = req.body;
     if (!title?.trim()) return res.status(400).json({ message: 'Task title is required.' });
-    const task = await Task.create({ title: title.trim(), description, status, dueDate: dueDate || null, assignedTo: assignedTo || null, createdBy: req.user.id });
+    const task = await Task.create({
+      title: title.trim(),
+      description: description ? String(description).trim().slice(0, 500) : '',
+      status: status || 'todo',
+      dueDate: dueDate ? new Date(dueDate) : null,
+      assignedTo: assignedTo || null,
+      createdBy: req.user.id
+    });
     return res.status(201).json({ task });
   } catch (error) {
     return next(error);
@@ -235,7 +273,15 @@ app.post('/api/admin/tasks', requireAuth, requireAdmin, async (req, res, next) =
 
 app.put('/api/admin/tasks/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const { title, description, status, dueDate, assignedTo } = req.body;
+    const updates = {
+      ...(title !== undefined ? { title: String(title).trim().slice(0, 120) } : {}),
+      ...(description !== undefined ? { description: String(description).trim().slice(0, 500) } : {}),
+      ...(status !== undefined ? { status } : {}),
+      ...(dueDate !== undefined ? { dueDate: dueDate ? new Date(dueDate) : null } : {}),
+      ...(assignedTo !== undefined ? { assignedTo: assignedTo || null } : {})
+    };
+    const task = await Task.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
     if (!task) return res.status(404).json({ message: 'Task not found.' });
     return res.json({ task });
   } catch (error) {
@@ -253,17 +299,18 @@ app.delete('/api/admin/tasks/:id', requireAuth, requireAdmin, async (req, res, n
   }
 });
 
-app.post('/api/ai/chat', requireAuth, async (req, res, next) => {
+app.post('/api/ai/chat', requireAuth, async (req, res) => {
   try {
-    if (!process.env.GEMINI_API_KEY) return res.status(503).json({ message: 'Gemini is not configured.' });
+    if (!genAI) return res.status(503).json({ message: 'Gemini is not configured. Please set GEMINI_API_KEY in .env.' });
     const prompt = String(req.body.message || '').trim();
     if (!prompt || prompt.length > 2000) return res.status(400).json({ message: 'Message must be between 1 and 2000 characters.' });
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+    const model = genAI.getGenerativeModel({ model: modelName });
     const result = await model.generateContent(`You are Neural Academy's friendly AI tutor. Explain clearly for a student. Do not invent sources. Student question: ${prompt}`);
     return res.json({ reply: result.response.text() });
   } catch (error) {
-    return next(error);
+    console.error('Gemini AI chat error:', error.message);
+    return res.status(502).json({ message: 'The AI tutor is currently unavailable. Please try again shortly.' });
   }
 });
 
@@ -276,10 +323,30 @@ app.get('/api/admin/stats', requireAuth, requireAdmin, async (_req, res, next) =
   }
 });
 
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 app.use((error, _req, res, _next) => {
   console.error(error);
   if (error.type === 'entity.parse.failed') {
     return res.status(400).json({ message: 'Request body must be valid JSON.' });
+  }
+  if (error.name === 'CastError') {
+    return res.status(400).json({ message: `Invalid identifier format for ${error.path || 'record'}.` });
+  }
+  if (error.name === 'ValidationError') {
+    const message = Object.values(error.errors || {})
+      .map((e) => e.message)
+      .join(', ');
+    return res.status(400).json({ message: message || 'Validation failed.' });
+  }
+  if (error.code === 11000) {
+    return res.status(409).json({ message: 'A record with this identifier already exists.' });
   }
   return res.status(500).json({ message: 'Unexpected server error.' });
 });
