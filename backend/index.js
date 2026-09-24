@@ -67,7 +67,8 @@ mongoose
   })
   .catch((error) => {
     console.error('MongoDB connection failed:', error.message);
-    process.exit(1);
+    console.error('Server will continue running but database features will be unavailable.');
+    console.error('Fix: Add 0.0.0.0/0 to MongoDB Atlas Network Access whitelist.');
   });
 
 if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
